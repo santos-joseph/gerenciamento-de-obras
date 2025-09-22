@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Val Montagens - Gerenciador de Obras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'val-black': '#1a1a1a',
+                        'val-gray': '#4b5563',
+                        'val-light-gray': '#f3f4f6',
+                        'val-smoke': '#e5e7eb',
+                        'val-accent': '#6b7280',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-val-light-gray">
+
+    <div id="app" class="max-w-4xl mx-auto md:pt-4">
+        <div class="bg-val-light-gray min-h-screen md:rounded-lg md:shadow-lg md:overflow-hidden">
+
+            <!-- Cabeçalho Principal -->
+            <header class="bg-val-black text-white p-4 shadow-md flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                     <img src="https://valmontagens.com/wp-content/uploads/2025/08/normal-1.png" alt="Logo Val Montagens" class="w-10 h-10 rounded-full object-cover">
+                    <h1 class="text-xl font-bold tracking-wider">VAL MONTAGENS</h1>
+                </div>
+                 <div id="back-button-container"></div>
+            </header>
+
+            <main class="p-4 pb-24">
+                <!-- Tela da Dashboard -->
+                <div id="dashboard-screen" class="hidden fade-in">
+                    <h2 class="text-2xl font-bold text-val-black mb-4">Dashboard</h2>
+                    <div id="dashboard-content" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Conteúdo da dashboard gerado via JS -->
+                    </div>
+                </div>
+
+                <!-- Tela de Lista de Obras -->
+                <div id="obras-list-screen" class="hidden fade-in">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-val-black">Minhas Obras</h2>
+                        <button data-action="open-modal" data-type="obra" class="bg-val-black text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-val-gray transition-colors flex items-center space-x-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            <span>Nova</span>
+                        </button>
+                    </div>
+                    <div id="obras-list" class="space-y-4">
+                        <!-- Lista de obras gerada via JS -->
+                    </div>
+                </div>
+
+                <!-- Tela de Detalhes da Obra -->
+                <div id="obra-detail-screen" class="hidden fade-in">
+                    <!-- Conteúdo do detalhe da obra gerado via JS -->
+                </div>
+            </main>
+
+            <!-- Barra de Navegação Inferior (Mobile-first) -->
+            <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-val-smoke max-w-4xl mx-auto md:rounded-b-lg">
+                <div class="flex justify-around">
+                    <button data-action="navigate" data-view="obras-list" class="nav-button flex-1 py-3 text-center text-val-gray font-semibold border-t-4 border-val-black">
+                        <svg class="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        Obras
+                    </button>
+                    <button data-action="navigate" data-view="dashboard" class="nav-button flex-1 py-3 text-center text-val-gray font-semibold border-t-4 border-transparent">
+                        <svg class="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Dashboard
+                    </button>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Modal Genérico -->
+        <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+            <div id="modal-content" class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md fade-in">
+                <h3 id="modal-title" class="text-xl font-bold text-val-black mb-4"></h3>
+                <form id="modal-form">
+                    <input type="hidden" id="edit-id">
+                    <input type="hidden" id="parent-id">
+                    <input type="hidden" id="grandparent-id">
+                    <div>
+                        <label for="modal-input-name" class="block text-sm font-medium text-val-gray mb-1">Nome</label>
+                        <input type="text" id="modal-input-name" class="w-full border border-val-smoke rounded-lg px-3 py-2 focus:ring-2 focus:ring-val-black focus:border-val-black" required>
+                    </div>
+                    <div class="flex justify-end space-x-3 mt-6">
+                        <button type="button" data-action="close-modal" class="bg-val-smoke text-val-gray px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors">Cancelar</button>
+                        <button type="submit" class="bg-val-black text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-val-gray transition-colors">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let chartInstances = {}; // Para armazenar instâncias dos gráficos
+
+        const app = {
+            state: {
+                currentView: 'obras-list',
+                obras: [],
+                editing: null, // { type, id, parentId, grandparentId }
+                currentObraId: null,
+            },
+
+            // =================================================================
+            // INICIALIZAÇÃO E GERENCIAMENTO DE ESTADO
+            // =================================================================
+            init() {
+                this.loadState();
+                this.attachEventListeners();
+                this.render();
+            },
+
+            loadState() {
+                const savedState = localStorage.getItem('valMontagensState');
+                if (savedState) {
+                    this.state = JSON.parse(savedState);
+                } else {
+                    // Estado inicial com dados de exemplo se não houver nada salvo
+                    this.state.obras = [
+                        {
+                            id: `obra_${Date.now()}`,
+                            nome: "Construção Residencial Alphaville",
+                            servicos: [
+                                {
+                                    id: `servico_${Date.now()}`,
+                                    nome: "Estrutura Metálica",
+                                    tarefas: [
+                                        { id: `tarefa_${Date.now()}_1`, nome: "Montagem das vigas principais", concluida: true },
+                                        { id: `tarefa_${Date.now()}_2`, nome: "Soldagem das conexões", concluida: false },
+                                    ]
+                                },
+                                {
+                                    id: `servico_${Date.now()+1}`,
+                                    nome: "Fundação",
+                                    tarefas: [
+                                        { id: `tarefa_${Date.now()}_3`, nome: "Escavação", concluida: true },
+                                        { id: `tarefa_${Date.now()}_4`, nome: " concretagem das sapatas", concluida: true },
+                                    ]
+                                }
+                            ]
+                        }
+                    ];
+                }
+            },
+
+            saveState() {
+                localStorage.setItem('valMontagensState', JSON.stringify(this.state));
+            },
+            
+            // =================================================================
+            // LÓGICA DE RENDERIZAÇÃO
+            // =================================================================
+            render() {
+                console.log("Rendering view:", this.state.currentView);
+                // Esconde todas as telas
+                document.querySelectorAll('#dashboard-screen, #obras-list-screen, #obra-detail-screen').forEach(el => el.classList.add('hidden'));
+
+                // Mostra a tela atual
+                const currentScreen = document.getElementById(`${this.state.currentView}-screen`);
+                if (currentScreen) {
+                    currentScreen.classList.remove('hidden');
+                }
+                
+                // Atualiza o botão de voltar
+                const backButtonContainer = document.getElementById('back-button-container');
+                if(this.state.currentView === 'obra-detail'){
+                    backButtonContainer.innerHTML = `<button data-action="navigate" data-view="obras-list" class="text-white font-semibold flex items-center space-x-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        <span>Voltar</span>
+                    </button>`;
+                } else {
+                    backButtonContainer.innerHTML = '';
+                }
+
+                // Renderiza o conteúdo específico da tela
+                switch (this.state.currentView) {
+                    case 'dashboard':
+                        this.renderDashboard();
+                        break;
+                    case 'obras-list':
+                        this.renderObrasList();
+                        break;
+                    case 'obra-detail':
+                        this.renderObraDetail();
+                        break;
+                }
+                
+                // Atualiza o estado visual da barra de navegação
+                document.querySelectorAll('.nav-button').forEach(btn => {
+                    if (btn.dataset.view === this.state.currentView) {
+                        btn.classList.add('text-val-black', 'border-val-black');
+                        btn.classList.remove('text-val-gray', 'border-transparent');
+                    } else {
+                        btn.classList.remove('text-val-black', 'border-val-black');
+                        btn.classList.add('text-val-gray', 'border-transparent');
+                    }
+                });
+            },
+
+            renderDashboard() {
+                const content = document.getElementById('dashboard-content');
+                
+                // Limpa o conteúdo anterior
+                content.innerHTML = '';
+                Object.values(chartInstances).forEach(chart => chart.destroy());
+                chartInstances = {};
+
+                // Cálculos
+                let totalObras = this.state.obras.length;
+                let totalServicos = 0;
+                let totalTarefas = 0;
+                let tarefasConcluidas = 0;
+                let tarefasPendentes = [];
+
+                this.state.obras.forEach(obra => {
+                    totalServicos += obra.servicos.length;
+                    obra.servicos.forEach(servico => {
+                        totalTarefas += servico.tarefas.length;
+                        tarefasConcluidas += servico.tarefas.filter(t => t.concluida).length;
+                        // Adiciona tarefas pendentes à lista
+                        servico.tarefas.filter(t => !t.concluida).forEach(tarefa => {
+                            tarefasPendentes.push({ ...tarefa, obraNome: obra.nome, servicoNome: servico.nome });
+                        });
+                    });
+                });
+                
+                const progressoGeral = totalTarefas > 0 ? ((tarefasConcluidas / totalTarefas) * 100).toFixed(0) : 0;
+                
+                // Estrutura da Dashboard
+                content.innerHTML = `
+                    <!-- Coluna da Esquerda (Cards e Gráfico Geral) -->
+                    <div class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-lg shadow">
+                                <h4 class="font-bold text-val-black text-2xl">${totalObras}</h4>
+                                <p class="text-val-gray text-sm">Obras Ativas</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg shadow">
+                                <h4 class="font-bold text-val-black text-2xl">${totalTarefas}</h4>
+                                <p class="text-val-gray text-sm">Total de Tarefas</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="font-semibold text-val-black mb-3">Progresso Geral</h3>
+                            <div class="h-64 flex items-center justify-center">
+                                <canvas id="geralProgressChart"></canvas>
+                            </div>
+                        </div>
+                         <div class="bg-white p-4 rounded-lg shadow">
+                            <h3 class="font-semibold text-val-black mb-3">Tarefas Urgentes</h3>
+                            <div id="tarefas-pendentes-list" class="space-y-2 max-h-64 overflow-y-auto no-scrollbar">
+                                <!-- Lista de tarefas pendentes -->
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Coluna da Direita (Gráfico por Obra) -->
+                    <div class="bg-white p-4 rounded-lg shadow">
+                         <h3 class="font-semibold text-val-black mb-3">Progresso por Obra</h3>
+                         <div class="h-[464px] flex items-center justify-center">
+                            <canvas id="obrasProgressChart"></canvas>
+                         </div>
+                    </div>
+                `;
+
+                // Renderizar gráficos e listas
+                this.renderGeralProgressChart(tarefasConcluidas, totalTarefas - tarefasConcluidas);
+                this.renderObrasProgressChart();
+                this.renderTarefasPendentes(tarefasPendentes);
+
+            },
+
+            renderGeralProgressChart(concluidas, pendentes) {
+                const ctx = document.getElementById('geralProgressChart')?.getContext('2d');
+                if (!ctx) return;
+
+                chartInstances.geral = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Concluídas', 'Pendentes'],
+                        datasets: [{
+                            data: [concluidas, pendentes],
+                            backgroundColor: ['#1a1a1a', '#e5e7eb'],
+                            borderColor: '#ffffff',
+                            borderWidth: 4,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    font: { family: 'Inter', size: 12 },
+                                    boxWidth: 20,
+                                    padding: 20
+                                }
+                            }
+                        }
+                    }
+                });
+            },
+
+            renderObrasProgressChart() {
+                const ctx = document.getElementById('obrasProgressChart')?.getContext('2d');
+                if (!ctx) return;
+                
+                const labels = this.state.obras.map(o => o.nome.length > 20 ? o.nome.substring(0, 20) + '...' : o.nome);
+                const data = this.state.obras.map(obra => {
+                    let totalTarefas = 0;
+                    let tarefasConcluidas = 0;
+                    obra.servicos.forEach(servico => {
+                        totalTarefas += servico.tarefas.length;
+                        tarefasConcluidas += servico.tarefas.filter(t => t.concluida).length;
+                    });
+                    return totalTarefas > 0 ? (tarefasConcluidas / totalTarefas) * 100 : 0;
+                });
+
+                chartInstances.obras = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Progresso (%)',
+                            data: data,
+                            backgroundColor: '#1a1a1a',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 100,
+                                grid: { display: false }
+                            },
+                            y: {
+                                grid: {
+                                    color: '#f3f4f6'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            },
+
+            renderTarefasPendentes(tarefas) {
+                const listContainer = document.getElementById('tarefas-pendentes-list');
+                if (!listContainer) return;
+                
+                if (tarefas.length === 0) {
+                    listContainer.innerHTML = `<p class="text-sm text-center text-val-gray py-4">Nenhuma tarefa pendente!</p>`;
+                    return;
+                }
+                
+                listContainer.innerHTML = tarefas.slice(0, 5).map(tarefa => `
+                    <div class="p-2 rounded-md bg-gray-50 border-l-4 border-val-accent">
+                        <p class="font-semibold text-sm text-val-black">${tarefa.nome}</p>
+                        <p class="text-xs text-val-gray">${tarefa.obraNome} / ${tarefa.servicoNome}</p>
+                    </div>
+                `).join('');
+            },
+
+            renderObrasList() {
+                const list = document.getElementById('obras-list');
+                if (this.state.obras.length === 0) {
+                    list.innerHTML = `<div class="text-center py-10 px-4 bg-white rounded-lg shadow">
+                        <h3 class="text-lg font-semibold text-val-black">Nenhuma obra cadastrada</h3>
+                        <p class="text-val-gray mt-1">Comece adicionando uma nova obra no botão acima.</p>
+                    </div>`;
+                    return;
+                }
+                list.innerHTML = this.state.obras.map(obra => {
+                    let totalTarefas = 0;
+                    let tarefasConcluidas = 0;
+                    obra.servicos.forEach(servico => {
+                        totalTarefas += servico.tarefas.length;
+                        tarefasConcluidas += servico.tarefas.filter(t => t.concluida).length;
+                    });
+                    const progresso = totalTarefas > 0 ? (tarefasConcluidas / totalTarefas) * 100 : 0;
+
+                    return `
+                        <div class="bg-white rounded-lg shadow-md p-4 transition-transform hover:scale-[1.02]">
+                            <div class="flex justify-between items-start">
+                                <h3 class="text-lg font-bold text-val-black mb-2">${obra.nome}</h3>
+                                <div class="flex space-x-2">
+                                     <button data-action="open-modal" data-type="obra" data-id="${obra.id}" class="text-val-gray hover:text-val-black">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z"></path></svg>
+                                    </button>
+                                    <button data-action="delete" data-type="obra" data-id="${obra.id}" class="text-val-gray hover:text-red-600">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <div class="flex justify-between text-sm text-val-gray mb-1">
+                                    <span>Progresso</span>
+                                    <span>${progresso.toFixed(0)}%</span>
+                                </div>
+                                <div class="w-full bg-val-smoke rounded-full h-2.5">
+                                    <div class="bg-val-black h-2.5 rounded-full" style="width: ${progresso}%"></div>
+                                </div>
+                            </div>
+                            <button data-action="view-obra" data-id="${obra.id}" class="mt-4 w-full bg-val-smoke text-val-black font-semibold py-2 rounded-lg hover:bg-gray-300 transition-colors">
+                                Ver Detalhes
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            },
+            
+            renderObraDetail() {
+                const container = document.getElementById('obra-detail-screen');
+                const obra = this.state.obras.find(o => o.id === this.state.currentObraId);
+                if (!obra) {
+                    container.innerHTML = `<p class="text-center text-val-gray">Obra não encontrada. Redirecionando...</p>`;
+                    setTimeout(() => {
+                        this.state.currentView = 'obras-list';
+                        this.state.currentObraId = null;
+                        this.render();
+                    }, 1500);
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold text-val-black truncate">${obra.nome}</h2>
+                        <button data-action="open-modal" data-type="servico" data-parent-id="${obra.id}" class="bg-val-black text-white px-4 py-2 rounded-lg font-semibold shadow hover:bg-val-gray transition-colors flex items-center space-x-2 text-sm">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            <span>Serviço</span>
+                        </button>
+                    </div>
+                    <div id="servicos-list" class="space-y-6">
+                        ${obra.servicos.length > 0 ? obra.servicos.map(servico => this.renderServico(obra, servico)).join('') : `
+                        <div class="text-center py-10 px-4 bg-white rounded-lg shadow">
+                            <h3 class="text-lg font-semibold text-val-black">Nenhum serviço cadastrado</h3>
+                            <p class="text-val-gray mt-1">Adicione o primeiro serviço para esta obra.</p>
+                        </div>`}
+                    </div>
+                `;
+            },
+
+            renderServico(obra, servico) {
+                 return `
+                    <div class="bg-white rounded-lg shadow p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="text-lg font-semibold text-val-black">${servico.nome}</h4>
+                            <div class="flex items-center space-x-2">
+                                <button data-action="open-modal" data-type="servico" data-id="${servico.id}" data-parent-id="${obra.id}" class="text-val-gray hover:text-val-black">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z"></path></svg>
+                                </button>
+                                <button data-action="delete" data-type="servico" data-id="${servico.id}" data-parent-id="${obra.id}" class="text-val-gray hover:text-red-600">
+                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            ${servico.tarefas.map(tarefa => this.renderTarefa(obra, servico, tarefa)).join('')}
+                        </div>
+                        <button data-action="open-modal" data-type="tarefa" data-parent-id="${servico.id}" data-grandparent-id="${obra.id}" class="mt-4 w-full bg-val-smoke text-val-black font-semibold py-2 rounded-lg text-sm hover:bg-gray-300 transition-colors flex items-center justify-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                            <span>Adicionar Tarefa</span>
+                        </button>
+                    </div>
+                `;
+            },
+
+            renderTarefa(obra, servico, tarefa) {
+                return `
+                    <div class="flex items-center justify-between p-2 rounded-md ${tarefa.concluida ? 'bg-green-50' : 'bg-gray-50'}">
+                        <div class="flex items-center">
+                            <button data-action="toggle-tarefa" data-id="${tarefa.id}" data-parent-id="${servico.id}" data-grandparent-id="${obra.id}" class="mr-3">
+                                <div class="w-6 h-6 rounded-full border-2 ${tarefa.concluida ? 'bg-val-black border-val-black' : 'border-gray-300'} flex items-center justify-center">
+                                    ${tarefa.concluida ? '<svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>' : ''}
+                                </div>
+                            </button>
+                            <span class="text-sm ${tarefa.concluida ? 'line-through text-val-gray' : 'text-val-black'}">${tarefa.nome}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                           <button data-action="open-modal" data-type="tarefa" data-id="${tarefa.id}" data-parent-id="${servico.id}" data-grandparent-id="${obra.id}" class="text-val-gray hover:text-val-black">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z"></path></svg>
+                            </button>
+                            <button data-action="delete" data-type="tarefa" data-id="${tarefa.id}" data-parent-id="${servico.id}" data-grandparent-id="${obra.id}" class="text-val-gray hover:text-red-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            },
+            
+            // =================================================================
+            // MANIPULADORES DE EVENTOS
+            // =================================================================
+            attachEventListeners() {
+                const appContainer = document.getElementById('app');
+                appContainer.addEventListener('click', (e) => {
+                    const action = e.target.closest('[data-action]');
+                    if (!action) return;
+
+                    const { type, id, parentId, grandparentId, view } = action.dataset;
+
+                    switch (action.dataset.action) {
+                        case 'navigate':
+                            if (view === 'obras-list') {
+                                this.state.currentObraId = null;
+                            }
+                            this.state.currentView = view;
+                            this.render();
+                            break;
+                        case 'view-obra':
+                            this.state.currentView = 'obra-detail';
+                            this.state.currentObraId = id;
+                            this.render();
+                            break;
+                        case 'open-modal':
+                            this.openModal(type, id, parentId, grandparentId);
+                            break;
+                        case 'close-modal':
+                            this.closeModal();
+                            break;
+                        case 'delete':
+                            this.handleDelete(type, id, parentId, grandparentId);
+                            break;
+                        case 'toggle-tarefa':
+                            this.toggleTarefa(grandparentId, parentId, id);
+                            break;
+                    }
+                });
+
+                document.getElementById('modal-form').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleFormSubmit();
+                });
+            },
+
+            // =================================================================
+            // LÓGICA DE CRUD
+            // =================================================================
+            handleDelete(type, id, parentId, grandparentId) {
+                const itemNome = this.getItemNameForConfirmation(type, id, parentId, grandparentId);
+                // NOTA: Em um app real, usaríamos um modal de confirmação customizado.
+                // window.confirm é bloqueado em alguns ambientes, mas usado aqui para simplicidade.
+                if (true) { // Substituindo confirm()
+                    switch (type) {
+                        case 'obra':
+                            this.state.obras = this.state.obras.filter(o => o.id !== id);
+                            break;
+                        case 'servico':
+                            const obra = this.state.obras.find(o => o.id === parentId);
+                            if(obra) obra.servicos = obra.servicos.filter(s => s.id !== id);
+                            break;
+                        case 'tarefa':
+                            const obraTarefa = this.state.obras.find(o => o.id === grandparentId);
+                            if(obraTarefa) {
+                                const servico = obraTarefa.servicos.find(s => s.id === parentId);
+                                if(servico) servico.tarefas = servico.tarefas.filter(t => t.id !== id);
+                            }
+                            break;
+                    }
+                    this.saveState();
+                    this.render();
+                }
+            },
+            
+            getItemNameForConfirmation(type, id, parentId, grandparentId) {
+                try {
+                    if (type === 'obra') return this.state.obras.find(o => o.id === id).nome;
+                    if (type === 'servico') return this.state.obras.find(o => o.id === parentId).servicos.find(s => s.id === id).nome;
+                    if (type === 'tarefa') return this.state.obras.find(o => o.id === grandparentId).servicos.find(s => s.id === parentId).tarefas.find(t => t.id === id).nome;
+                } catch (error) {
+                    return 'este item';
+                }
+            },
+
+            handleFormSubmit() {
+                const nameInput = document.getElementById('modal-input-name');
+                const name = nameInput.value.trim();
+                if (!name) return;
+
+                const { type, id, parentId, grandparentId } = this.state.editing;
+
+                switch (type) {
+                    case 'obra':
+                        if (id) { // Edit
+                            const obra = this.state.obras.find(o => o.id === id);
+                            if(obra) obra.nome = name;
+                        } else { // Create
+                            this.state.obras.push({ id: `obra_${Date.now()}`, nome: name, servicos: [] });
+                        }
+                        break;
+                    case 'servico':
+                         const obra = this.state.obras.find(o => o.id === parentId);
+                         if(!obra) return;
+                         if(id){ // Edit
+                            const servico = obra.servicos.find(s => s.id === id);
+                            if(servico) servico.nome = name;
+                         } else { // Create
+                            obra.servicos.push({ id: `servico_${Date.now()}`, nome: name, tarefas: [] });
+                         }
+                        break;
+                     case 'tarefa':
+                        const obraTarefa = this.state.obras.find(o => o.id === grandparentId);
+                        if(!obraTarefa) return;
+                        const servico = obraTarefa.servicos.find(s => s.id === parentId);
+                        if(!servico) return;
+                        if(id){ // Edit
+                             const tarefa = servico.tarefas.find(t => t.id === id);
+                             if(tarefa) tarefa.nome = name;
+                        } else { // Create
+                             servico.tarefas.push({ id: `tarefa_${Date.now()}`, nome: name, concluida: false });
+                        }
+                        break;
+                }
+
+                this.saveState();
+                this.render();
+                this.closeModal();
+            },
+
+            toggleTarefa(obraId, servicoId, tarefaId){
+                 const obra = this.state.obras.find(o => o.id === obraId);
+                 if(!obra) return;
+                 const servico = obra.servicos.find(s => s.id === servicoId);
+                 if(!servico) return;
+                 const tarefa = servico.tarefas.find(t => t.id === tarefaId);
+                 if(!tarefa) return;
+                 
+                 tarefa.concluida = !tarefa.concluida;
+                 this.saveState();
+                 this.render();
+            },
+            
+            // =================================================================
+            // LÓGICA DO MODAL
+            // =================================================================
+            openModal(type, id = null, parentId = null, grandparentId = null) {
+                this.state.editing = { type, id, parentId, grandparentId };
+                const modal = document.getElementById('modal');
+                const title = document.getElementById('modal-title');
+                const nameInput = document.getElementById('modal-input-name');
+                
+                let currentName = '';
+                const action = id ? 'Editar' : 'Adicionar';
+
+                switch(type){
+                    case 'obra':
+                        title.textContent = `${action} Obra`;
+                        if(id) currentName = this.state.obras.find(o => o.id === id)?.nome || '';
+                        break;
+                    case 'servico':
+                         title.textContent = `${action} Serviço`;
+                         if(id) {
+                            const obra = this.state.obras.find(o => o.id === parentId);
+                            currentName = obra?.servicos.find(s => s.id === id)?.nome || '';
+                         }
+                        break;
+                    case 'tarefa':
+                         title.textContent = `${action} Tarefa`;
+                         if(id) {
+                            const obra = this.state.obras.find(o => o.id === grandparentId);
+                            const servico = obra?.servicos.find(s => s.id === parentId);
+                            currentName = servico?.tarefas.find(t => t.id === id)?.nome || '';
+                         }
+                        break;
+                }
+
+                nameInput.value = currentName;
+                modal.classList.remove('hidden');
+                nameInput.focus();
+            },
+
+            closeModal() {
+                const modal = document.getElementById('modal');
+                const form = document.getElementById('modal-form');
+                form.reset();
+                this.state.editing = null;
+                modal.classList.add('hidden');
+            }
+        };
+
+        app.init();
+    });
+    </script>
+</body>
+</html>
